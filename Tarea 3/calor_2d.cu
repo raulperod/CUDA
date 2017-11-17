@@ -67,12 +67,10 @@ int main(){
 		cudaMemcpy(dev_u, u, nx * ny * sizeof(float) , cudaMemcpyHostToDevice);
 
 		if(ntime%500 == 0){
-			
 			printf("%d iteraciones \n", ntime);
 			sprintf(nombre,"calor_2d_%i.csv",ntime);
 			puts(nombre);
 			fl=fopen(nombre,"w");
-
 			for(int i = 0; i < nx; i++ ){
 				for(int j = 0; j < ny; j++ ){
 					fprintf(fl, "%d, %d, %f\n", i,j, u[j+i*nx]);
