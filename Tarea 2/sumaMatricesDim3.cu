@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define N 2048
-#define THREADS_PER_BLOCK 512
 
 __global__ void suma( int *a, int *b, int *c ) {
-    int index = threadIdx.x + blockIdx.x * blockDim.x;
+    int index = blockIdx.x + blockIdx.y * blockDim.x;
     c[index] = a[index] + b[index]
 }
 
@@ -15,9 +14,9 @@ int main( void ) {
     int *dev_a, *dev_b, *dev_c; 
     int size = N * N * sizeof( int ); 
     
-    cudaMalloc( (void**)&dev_a, size );
-    cudaMalloc( (void**)&dev_b, size );
-    cudaMalloc( (void**)&dev_c, size );
+    cudaMalloc( &dev_a, size );
+    cudaMalloc( &dev_b, size );
+    cudaMalloc( &dev_c, size );
     a = (int*)malloc( size );
     b = (int*)malloc( size );
     c = (int*)malloc( size );
@@ -28,16 +27,15 @@ int main( void ) {
     cudaMemcpy( dev_a, a, size, cudaMemcpyHostToDevice );
     cudaMemcpy( dev_b, b, size, cudaMemcpyHostToDevice );
     
-    dot<<< (N*N+1)/THREADS_PER_BLOCK, THREADS_PER_BLOCK >>>( dev_a, dev_b, dev_c );
+    dim3 numeroHilos(1,1);
+    dim3 numeroBloques(2048,2048);
+
+    suma<<< numeroBloques, numeroHilos  >>>( dev_a, dev_b, dev_c );
     
     cudaMemcpy( c, dev_c, size , cudaMemcpyDeviceToHost );
     
-    free( a ); 
-    free( b ); 
-    free( c );
-    cudaFree( dev_a );
-    cudaFree( dev_b );
-    cudaFree( dev_c );
+    free( a ); free( b ); free( c );
+    cudaFree( dev_a ); cudaFree( dev_b ); cudaFree( dev_c );
     return 0;
 }
 
